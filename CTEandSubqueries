@@ -1,0 +1,115 @@
+## find the average amount paid by the top 5 customers
+
+###### as subquery: 
+
+SELECT AVG (total_amount_paid) as average
+FROM 
+(SELECT A.customer_id,
+		A.first_name,
+		A.last_name,
+		D.city,
+		E.country,
+		SUM(B.amount) AS total_amount_paid 
+FROM customer A
+INNER JOIN payment B on A.customer_id = B.customer_id
+INNER JOIN address C on A.address_id = C.address_id
+INNER JOIN city D on C.city_id = D.city_id
+INNER JOIN country E on D.country_id = E.country_id
+WHERE D.city IN ('Aurora', 'Atlixco', 'Xintai', 'Adoni', 'Dhule (Dhulia)', 'Kurashiki', 'Pingxiang', 'Sivas', 'Celaya', 'So Leopoldo')
+GROUP BY A.customer_id, A.first_name, A.last_name, D.city, E.country
+ORDER BY total_amount_paid DESC
+LIMIT 5) AS total_amount_paid
+
+###### as CTE:
+
+WITH average_total_amount_paid_cte (customer_id, first_name, last_name, 
+									city, country, total_amount_paid) AS
+	(SELECT A.customer_id,
+			A.first_name,
+			A.last_name,
+			D.city,
+			E.country,
+			SUM(B.amount) AS total_amount_paid 
+	FROM customer A
+	INNER JOIN payment B on A.customer_id = B.customer_id
+	INNER JOIN address C on A.address_id = C.address_id
+	INNER JOIN city D on C.city_id = D.city_id
+	INNER JOIN country E on D.country_id = E.country_id
+	WHERE D.city IN ('Aurora', 'Atlixco', 'Xintai', 'Adoni', 'Dhule (Dhulia)', 
+					 'Kurashiki', 'Pingxiang', 'Sivas', 'Celaya', 'So Leopoldo')
+	GROUP BY A.customer_id, A.first_name, A.last_name, D.city, E.country
+	ORDER BY total_amount_paid DESC
+	LIMIT 5) 
+SELECT AVG (total_amount_paid) AS average_total_amount_paid_cte
+FROM average_total_amount_paid_cte
+
+
+
+
+## find out how many of the top 5 customers are based within each country. Output columns should include “country,” “all_customer_count” with the total number of customers in each country, “top_customer_count” showing how many of the top 5 customers live in each country
+
+###### as subquery:
+
+SELECT DISTINCT(A.country), 
+COUNT (DISTINCT D.customer_id) AS all_customer_count, 
+COUNT(DISTINCT A.country) AS top_customer_count
+FROM country A
+INNER JOIN city B on A.country_id = B.country_id
+INNER JOIN address C on B.city_id = C.city_id
+INNER JOIN customer D on C.address_id = D.address_id
+LEFT JOIN
+	(SELECT A.customer_id, 
+	A.first_name, 
+	A.last_name, 
+	D.city, 
+	E.country, 
+	SUM(B.amount) AS total_amount_paid
+	FROM customer A
+	INNER JOIN payment B on A.customer_id = B.customer_id
+	INNER JOIN address C on A.address_id = C.address_id
+	INNER JOIN city D on C.city_id = D.city_id
+	INNER JOIN country E on D.country_id = E.country_id
+	WHERE D.city IN ('Aurora', 'Atlixco', 'Xintai', 'Adoni', 'Dhule (Dhulia)', 'Kurashiki', 'Pingxiang', 'Sivas', 'Celaya', 'So Leopoldo')
+	GROUP BY A.customer_id, A.first_name, A.last_name, D.city, E.country
+	ORDER BY total_amount_paid DESC
+	LIMIT 5) AS top_5_customers
+ON A.country=top_5_customers.COUNTRY
+GROUP BY A.country
+ORDER BY all_customer_count DESC
+LIMIT 5
+
+###### as CTE:
+
+WITH top_customer_count_cte (country, all_customer_count, top_customer_count) AS
+	(SELECT DISTINCT(A.country), 
+	COUNT (DISTINCT D.customer_id) AS all_customer_count, 
+	COUNT(DISTINCT A.country) AS top_customer_count
+	FROM country A
+	INNER JOIN city B on A.country_id = B.country_id
+	INNER JOIN address C on B.city_id = C.city_id
+	INNER JOIN customer D on C.address_id = D.address_id
+	LEFT JOIN
+		(SELECT A.customer_id, 
+		A.first_name, 
+		A.last_name, 
+		D.city, 
+		E.country, 
+		SUM(B.amount) AS total_amount_paid
+		FROM customer A
+		INNER JOIN payment B on A.customer_id = B.customer_id
+		INNER JOIN address C on A.address_id = C.address_id
+		INNER JOIN city D on C.city_id = D.city_id
+		INNER JOIN country E on D.country_id = E.country_id
+		WHERE D.city IN ('Aurora', 'Atlixco', 'Xintai', 'Adoni', 'Dhule (Dhulia)', 'Kurashiki', 'Pingxiang', 'Sivas', 'Celaya', 'So Leopoldo')
+		GROUP BY A.customer_id, A.first_name, A.last_name, D.city, E.country
+		ORDER BY total_amount_paid DESC
+		LIMIT 5) AS top_5_customers
+	ON A.country=top_5_customers.COUNTRY
+	GROUP BY A.country
+	ORDER BY all_customer_count DESC
+	LIMIT 5) 
+SELECT country, all_customer_count, top_customer_count 
+FROM top_customer_count_cte
+GROUP BY country, all_customer_count, top_customer_count
+ORDER BY all_customer_count DESC
+
