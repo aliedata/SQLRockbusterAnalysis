@@ -1,0 +1,126 @@
+## Checking Film table for duplicates
+
+SELECT film_id,
+		title,
+		description,
+		release_year,
+		language_id,
+		rental_duration,
+		rental_rate,
+		length,
+		replacement_cost,
+		rating,
+		last_update,
+		special_features,
+		fulltext,
+       COUNT(*)
+FROM film
+GROUP BY film_id,
+		title,
+		description,
+		release_year,
+		language_id,
+		rental_duration,
+		rental_rate,
+		length,
+		replacement_cost,
+		rating,
+		last_update,
+		special_features,
+		fulltext
+HAVING COUNT(*) >1
+
+
+
+## Checking Film table for nonuniform data
+
+SELECT DISTINCT rating
+FROM film
+GROUP BY rating
+
+SELECT DISTINCT rental_rate
+FROM film
+GROUP BY rental_rate
+
+SELECT DISTINCT replacement_cost
+FROM film
+GROUP BY replacement_cost
+
+
+## Checking Film table for missing data
+
+UPDATE tablename
+SET = AVG(col1)
+WHERE col1 IS NULL
+
+
+## Checking Customer table for duplicates
+
+SELECT customer_id,
+		store_id,
+		first_name,
+		last_name,
+		email,
+		address_id, 
+		activebool, 
+		create_date,
+		last_update,
+		active,
+       COUNT(*)
+FROM customer
+GROUP BY customer_id,
+		store_id,
+		first_name,
+		last_name,
+		email,
+		address_id, 
+		activebool, 
+		create_date,
+		last_update,
+		active
+HAVING COUNT(*) >1
+
+
+## Checking Customer table for nonuniform data
+
+SELECT DISTINCT activebool 
+FROM customer
+GROUP BY activebool
+
+
+## Summarizing Film table
+
+SELECT
+	MIN(rental_duration) AS min_rental_duration,
+	MAX(rental_duration) AS max_rental_duration,
+	AVG(rental_duration) AS avg_rental_duration,
+	MIN(rental_rate) AS min_rental_rate,
+	MAX(rental_rate) AS max_rental_rate,
+	AVG(rental_rate) AS avg_rental_rate,
+	MIN(length) AS min_length,
+	MAX(length) AS max_length,
+	AVG(length) AS avg_length,
+	MIN(replacement_cost) AS min_replacement_cost,
+	MAX(replacement_cost) AS max_replacement_cost,
+	AVG(replacement_cost) AS avg_replacement_cost,
+	mode() WITHIN GROUP (ORDER BY release_year) AS release_year_mode,
+	mode() WITHIN GROUP (ORDER BY language_id) AS language_id_mode,
+	mode() WITHIN GROUP (ORDER BY rating) AS rating_mode
+FROM film
+
+
+## Summarizing Customer table: 
+
+SELECT
+	mode() WITHIN GROUP (ORDER BY store_id) AS store_id_mode,
+	mode() WITHIN GROUP (ORDER BY first_name) AS first_name_mode,
+	mode() WITHIN GROUP (ORDER BY last_name) AS last_name_mode,
+	mode() WITHIN GROUP (ORDER BY activebool) AS activebool_mode,
+	mode() WITHIN GROUP (ORDER BY active) AS active_mode,
+	MIN(create_date) AS earliest_create_date,
+	MAX(create_date) AS latest_create_date,
+	mode() WITHIN GROUP (ORDER BY create_date) AS create_date_mode, 
+	MIN(last_update) AS min_last_update,
+	MAX(last_update) AS max_last_update,
+	mode() WITHIN GROUP (ORDER BY last_update) AS last_update_mode
+FROM customer
